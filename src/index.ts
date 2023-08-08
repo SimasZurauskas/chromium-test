@@ -53,7 +53,7 @@ app.get('/pdf', async (req, res) => {
     res.send(`PDF SIZE: ${buffer.length} bytes`);
   } catch (error) {
     console.log(error);
-    res.send(JSON.stringify(error, null, 2));
+    res.status(500).json({ error });
   }
 });
 
