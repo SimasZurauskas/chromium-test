@@ -1,9 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 import express from 'express';
-// @ts-ignore
 import helmet from 'helmet';
-// @ts-ignore
 import cors from 'cors';
 // @ts-ignore
 import chromium from 'chromium';
@@ -29,15 +27,13 @@ app.get('/', (req, res) => {
 
 app.post('/api/generate', async (req, res) => {
   try {
-    // const buffer = await generatePDF({ originUlr: 'https://www.google.com' });
-
     const body = req.body as Body;
 
-    if (!body) {
+    const { data, isLloyds } = body;
+
+    if (!data) {
       res.status(400).send('bad request');
     }
-
-    const { data, isLloyds } = body;
 
     // console.log(data);
 
@@ -48,7 +44,7 @@ app.post('/api/generate', async (req, res) => {
 
     // res.sendStatus(200);
 
-    const baseUrl = isLloyds ? 'https://wcm-lloyds.radical-test.co.uk' : 'https://wcm-bos.radical-test.co.uk';
+    const baseUrl = isLloyds ? process.env.URL_LLOYDS : process.env.URL_BBOS;
 
     const browser = await puppeteer.launch({
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
