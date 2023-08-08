@@ -46,7 +46,7 @@ app.post('/api/generate', async (req, res) => {
 
     const browser = await puppeteer.launch({
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      defaultViewport: { width: 1016, height: 800 },
+      defaultViewport: { width: 1300, height: 800 },
       executablePath:
         process.env.NODE_ENV === 'production' ? '/usr/bin/chromium-browser' : await chromium.executablePath,
       headless: true,
