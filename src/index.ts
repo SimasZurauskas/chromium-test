@@ -9,31 +9,7 @@ import cors from 'cors';
 import chromium from 'chromium';
 import puppeteer from 'puppeteer';
 
-const generatePDF = async ({ originUlr }: any) => {
-  // const pahas = await chromium.executablePath;
-
-  const browser = await puppeteer.launch({
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    // args: chromium.args,
-    // defaultViewport: chromium.defaultViewport,
-    executablePath: await chromium.executablePath,
-    // executablePath:
-    //   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-    headless: true,
-    ignoreHTTPSErrors: true
-
-    // channel: 'chrome-beta'
-  });
-  const page = await browser.newPage();
-
-  await page.goto(`${originUlr}`);
-  // await page.waitFor(500);
-
-  const pdf = await page.pdf({ format: 'a4', printBackground: false });
-
-  await browser.close();
-  return pdf;
-};
+const isProd = process.env.NODE_ENV === 'production';
 
 // Express
 const app = express();
@@ -42,8 +18,10 @@ app.use(cors({ origin: '*' }));
 app.use(express.json({ limit: '100mb' }));
 
 app.get('/', (req, res) => {
-  res.send('OK');
+  res.send('ok');
 });
+
+console.log(chromium.defaultViewport);
 
 app.get('/pdf', async (req, res) => {
   try {
@@ -52,8 +30,9 @@ app.get('/pdf', async (req, res) => {
     const browser = await puppeteer.launch({
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
       // args: chromium.args,
-      // defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath,
+      // defaultViewport: { width: 1400, height: 1200 },
+      executablePath: isProd ? '/usr/bin/chromium-browser' : await chromium.executablePath,
+      // executablePath: await chromium.executablePath,
       // executablePath: await chromium.executablePath,
       // executablePath:
       //   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
@@ -64,23 +43,26 @@ app.get('/pdf', async (req, res) => {
     });
     const page = await browser.newPage();
 
-    await page.goto('https://www.google.com');
+    await page.goto('https://wcm-lloyds.radical-test.co.uk/');
     // await page.waitFor(500);
 
-    const pdf = await page.pdf({ format: 'a4', printBackground: false });
+    const buffer = await page.pdf({ format: 'a4', printBackground: true });
 
     await browser.close();
 
+    // res.setHeader('Content-Type', 'application/octet-stream');
+    // res.setHeader('Content-Disposition', 'attachment; filename=myfile.pdf');
+    // res.end(buffer);
+
     console.log('DONE');
-    res.send(`PDF SIZE: ${pdf.length} bytes`);
+    res.send(`PDF SIZE: ${buffer.length} bytes`);
   } catch (error: any) {
     console.log(error);
     res.status(500).send(error.message);
   }
 });
 
-// TODO should be /_health
-app.get('/health', (req, res) => {
+app.get('/_health', (req, res) => {
   res.sendStatus(200);
 });
 
