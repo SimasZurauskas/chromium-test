@@ -12,6 +12,11 @@ import encodeQueryParams from './encodeQueryParams';
 
 const isProd = process.env.NODE_ENV === 'production';
 
+type Body = {
+  isLloyds: boolean;
+  data: {};
+};
+
 // Express
 const app = express();
 app.use(helmet());
@@ -22,25 +27,28 @@ app.get('/', (req, res) => {
   res.send('ok');
 });
 
-app.get('/pdf', async (req, res) => {
-  const baseUrl = 'https://wcm-lloyds.radical-test.co.uk';
+app.post('/api/generate', async (req, res) => {
   try {
     // const buffer = await generatePDF({ originUlr: 'https://www.google.com' });
 
-    const data = {
-      sections: {
-        companyPerformance: true,
-        scenarioAnalysis: true,
-        benchmarkAnalysis: true
-      }
-    };
+    const body = req.body as Body;
+
+    if (!body) {
+      res.status(400).send('bad request');
+    }
+
+    const { data, isLloyds } = body;
+
+    // console.log(data);
 
     const stringifiedData = JSON.stringify(data);
     const queryData = encodeQueryParams({ data: stringifiedData });
 
-    console.log(queryData);
+    // console.log(queryData);
 
     // res.sendStatus(200);
+
+    const baseUrl = isLloyds ? 'https://wcm-lloyds.radical-test.co.uk' : 'https://wcm-bos.radical-test.co.uk';
 
     const browser = await puppeteer.launch({
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
@@ -59,7 +67,7 @@ app.get('/pdf', async (req, res) => {
     await browser.close();
 
     res.setHeader('Content-Type', 'application/octet-stream');
-    res.setHeader('Content-Disposition', 'attachment; filename=myfile.pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename=generated.pdf');
     res.end(buffer);
 
     // console.log('DONE');
