@@ -66,9 +66,11 @@ app.post('/api/generate', async (req, res) => {
 
     await browser.close();
 
-    res.setHeader('Content-Type', 'application/octet-stream');
-    res.setHeader('Content-Disposition', 'attachment; filename=generated.pdf');
-    res.end(buffer);
+    res.status(200).json({ pdfBuffer: buffer });
+
+    // res.setHeader('Content-Type', 'application/octet-stream');
+    // res.setHeader('Content-Disposition', 'attachment; filename=generated.pdf');
+    // res.end(buffer);
 
     // console.log('DONE');
     // res.send(`PDF SIZE: ${buffer.length} bytes`);
