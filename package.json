@@ -1,5 +1,5 @@
 {
-  "name": "progresyvus-projektai.api",
+  "name": "lloyds.wcm-2-pdf",
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
@@ -13,9 +13,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.0.1",
     "express": "^4.17.2",
-    "express-async-handler": "^1.2.0",
     "helmet": "^5.1.1",
-    "http": "^0.0.1-security",
     "puppeteer": "^21.0.1",
     "qs": "^6.11.2"
   },
