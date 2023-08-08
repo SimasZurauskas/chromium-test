@@ -47,10 +47,31 @@ app.get('/', (req, res) => {
 
 app.get('/pdf', async (req, res) => {
   try {
-    const buffer = await generatePDF({ originUlr: 'https://www.google.com' });
+    // const buffer = await generatePDF({ originUlr: 'https://www.google.com' });
+
+    const browser = await puppeteer.launch({
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      // args: chromium.args,
+      // defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath,
+      // executablePath:
+      //   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+      headless: true,
+      ignoreHTTPSErrors: true
+
+      // channel: 'chrome-beta'
+    });
+    const page = await browser.newPage();
+
+    await page.goto('https://www.google.com');
+    // await page.waitFor(500);
+
+    const pdf = await page.pdf({ format: 'a4', printBackground: false });
+
+    await browser.close();
 
     console.log('DONE');
-    res.send(`PDF SIZE: ${buffer.length} bytes`);
+    res.send(`PDF SIZE: ${pdf.length} bytes`);
   } catch (error) {
     console.log(error);
     res.status(500).json({ error });
