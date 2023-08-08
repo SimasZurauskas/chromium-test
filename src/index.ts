@@ -8,8 +8,6 @@ import chromium from 'chromium';
 import puppeteer from 'puppeteer';
 import encodeQueryParams from './encodeQueryParams';
 
-const isProd = process.env.NODE_ENV === 'production';
-
 type Body = {
   isLloyds: boolean;
   data: {};
@@ -32,7 +30,7 @@ app.post('/api/generate', async (req, res) => {
     const { data, isLloyds } = body;
 
     if (!data) {
-      res.status(400).send('bad request');
+      res.status(400).send('Bad request');
     }
 
     // console.log(data);
@@ -48,7 +46,9 @@ app.post('/api/generate', async (req, res) => {
 
     const browser = await puppeteer.launch({
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      executablePath: isProd ? '/usr/bin/chromium-browser' : await chromium.executablePath,
+      defaultViewport: { width: 1016, height: 800 },
+      executablePath:
+        process.env.NODE_ENV === 'production' ? '/usr/bin/chromium-browser' : await chromium.executablePath,
       headless: true,
       ignoreHTTPSErrors: true
     });
@@ -56,7 +56,12 @@ app.post('/api/generate', async (req, res) => {
 
     await page.goto(`${baseUrl}/pdf${queryData}`);
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await new Promise((resolve) => {
+      const timer = setTimeout(() => {
+        clearTimeout(timer);
+        resolve(null);
+      }, 2000);
+    });
 
     const buffer = await page.pdf({ format: 'a4', printBackground: true });
 
@@ -67,9 +72,6 @@ app.post('/api/generate', async (req, res) => {
     // res.setHeader('Content-Type', 'application/octet-stream');
     // res.setHeader('Content-Disposition', 'attachment; filename=generated.pdf');
     // res.end(buffer);
-
-    // console.log('DONE');
-    // res.send(`PDF SIZE: ${buffer.length} bytes`);
   } catch (error: any) {
     console.log(error);
     res.status(500).send(error.message);
@@ -82,5 +84,5 @@ app.get('/_health', (req, res) => {
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on port: ${PORT}`);
 });
