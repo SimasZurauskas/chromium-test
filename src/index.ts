@@ -53,7 +53,7 @@ app.get('/pdf', async (req, res) => {
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
       // args: chromium.args,
       // defaultViewport: chromium.defaultViewport,
-      executablePath: '/usr/bin/google-chrome-stable',
+      executablePath: await chromium.executablePath,
       // executablePath: await chromium.executablePath,
       // executablePath:
       //   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
