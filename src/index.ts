@@ -46,10 +46,15 @@ app.get('/', (req, res) => {
 });
 
 app.get('/pdf', async (req, res) => {
-  const buffer = await generatePDF({ originUlr: 'https://www.google.com' });
+  try {
+    const buffer = await generatePDF({ originUlr: 'https://www.google.com' });
 
-  console.log('DONE');
-  res.send(`PDF SIZE: ${buffer.length} bytes`);
+    console.log('DONE');
+    res.send(`PDF SIZE: ${buffer.length} bytes`);
+  } catch (error) {
+    console.log(error);
+    res.send(JSON.stringify(error, null, 2));
+  }
 });
 
 // TODO should be /_health
