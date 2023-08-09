@@ -46,7 +46,6 @@ app.post('/api/generate', async (req, res) => {
 
     const browser = await puppeteer.launch({
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      defaultViewport: { width: 1300, height: 800 },
       executablePath:
         process.env.NODE_ENV === 'production' ? '/usr/bin/chromium-browser' : await chromium.executablePath,
       headless: true,
@@ -60,7 +59,7 @@ app.post('/api/generate', async (req, res) => {
       const timer = setTimeout(() => {
         clearTimeout(timer);
         resolve(null);
-      }, 2000);
+      }, 3000);
     });
 
     const buffer = await page.pdf({ format: 'a4', printBackground: true });
