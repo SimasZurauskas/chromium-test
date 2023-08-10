@@ -20,7 +20,7 @@ type Body = {
 const app = express();
 app.use(helmet());
 app.use(cors({ origin: '*' }));
-app.use(express.json({ limit: '100mb' }));
+app.use(express.json({ limit: '1mb' }));
 
 app.get('/', (req, res) => {
   res.send('ok');
@@ -49,13 +49,51 @@ app.post('/api/init', async (req, res) => {
 });
 
 app.get('/api/generate/:dataId', async (req, res) => {
-  // launch virtual browser with param of dataId
+  const dataId = req.params.dataId;
 
-  // front app will pick up data from /api/pull/:dataId
-  // and render
-  // pdf snap and download
+  if (!dataId) {
+    res.status(400).send('Bad request');
+    return;
+  }
 
-  res.sendStatus(200);
+  const data = dataStore[dataId];
+
+  if (!data) {
+    res.status(500).send('Data not found');
+    return;
+  }
+
+  try {
+    const baseUrl = data.isLloyds ? process.env.URL_LLOYDS : process.env.URL_BBOS;
+
+    const browser = await puppeteer.launch({
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      executablePath:
+        process.env.NODE_ENV === 'production' ? '/usr/bin/chromium-browser' : await chromium.executablePath,
+      headless: true,
+      ignoreHTTPSErrors: true
+    });
+    const page = await browser.newPage();
+    await page.goto(`${baseUrl}/pdf/${dataId}`);
+
+    await new Promise((resolve) => {
+      const timer = setTimeout(() => {
+        clearTimeout(timer);
+        resolve(null);
+      }, 3000);
+    });
+
+    try {
+      delete dataStore[dataId];
+    } catch (error) {}
+
+    const buffer = await page.pdf({ format: 'a4', printBackground: true });
+    await browser.close();
+    res.status(200).json({ pdfBuffer: buffer });
+  } catch (error: any) {
+    console.log(error);
+    res.status(500).send(error.message);
+  }
 });
 
 app.get('/api/pull/:dataId', async (req, res) => {
