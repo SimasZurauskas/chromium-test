@@ -118,46 +118,46 @@ app.get('/api/pull/:dataId', async (req, res) => {
   res.status(200).json({ data: data.data });
 });
 
-app.post('/api/generate', async (req, res) => {
-  try {
-    const body = req.body as Body;
+// app.post('/api/generate', async (req, res) => {
+//   try {
+//     const body = req.body as Body;
 
-    const { data, isLloyds } = body;
+//     const { data, isLloyds } = body;
 
-    if (!data) {
-      res.status(400).send('Bad request');
-    }
+//     if (!data) {
+//       res.status(400).send('Bad request');
+//     }
 
-    console.log(data);
-    const stringifiedData = JSON.stringify(data);
-    const queryData = encodeQueryParams({ data: stringifiedData });
-    const baseUrl = isLloyds ? process.env.URL_LLOYDS : process.env.URL_BBOS;
+//     console.log(data);
+//     const stringifiedData = JSON.stringify(data);
+//     const queryData = encodeQueryParams({ data: stringifiedData });
+//     const baseUrl = isLloyds ? process.env.URL_LLOYDS : process.env.URL_BBOS;
 
-    const browser = await puppeteer.launch({
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      executablePath:
-        process.env.NODE_ENV === 'production' ? '/usr/bin/chromium-browser' : await chromium.executablePath,
-      headless: true,
-      ignoreHTTPSErrors: true
-    });
-    const page = await browser.newPage();
-    await page.goto(`${baseUrl}/pdf${queryData}`);
+//     const browser = await puppeteer.launch({
+//       args: ['--no-sandbox', '--disable-setuid-sandbox'],
+//       executablePath:
+//         process.env.NODE_ENV === 'production' ? '/usr/bin/chromium-browser' : await chromium.executablePath,
+//       headless: true,
+//       ignoreHTTPSErrors: true
+//     });
+//     const page = await browser.newPage();
+//     await page.goto(`${baseUrl}/pdf${queryData}`);
 
-    await new Promise((resolve) => {
-      const timer = setTimeout(() => {
-        clearTimeout(timer);
-        resolve(null);
-      }, 3000);
-    });
+//     await new Promise((resolve) => {
+//       const timer = setTimeout(() => {
+//         clearTimeout(timer);
+//         resolve(null);
+//       }, 3000);
+//     });
 
-    const buffer = await page.pdf({ format: 'a4', printBackground: true });
-    await browser.close();
-    res.status(200).json({ pdfBuffer: buffer });
-  } catch (error: any) {
-    console.log(error);
-    res.status(500).send(error.message);
-  }
-});
+//     const buffer = await page.pdf({ format: 'a4', printBackground: true });
+//     await browser.close();
+//     res.status(200).json({ pdfBuffer: buffer });
+//   } catch (error: any) {
+//     console.log(error);
+//     res.status(500).send(error.message);
+//   }
+// });
 
 app.get('/_health', (req, res) => {
   res.sendStatus(200);
