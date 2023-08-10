@@ -80,7 +80,7 @@ app.get('/api/generate/:dataId', async (req, res) => {
       const timer = setTimeout(() => {
         clearTimeout(timer);
         resolve(null);
-      }, 3000);
+      }, 5000);
     });
 
     try {
