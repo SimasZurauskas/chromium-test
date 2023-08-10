@@ -71,7 +71,11 @@ app.get('/api/generate/:dataId', async (req, res) => {
       executablePath:
         process.env.NODE_ENV === 'production' ? '/usr/bin/chromium-browser' : await chromium.executablePath,
       headless: true,
-      ignoreHTTPSErrors: true
+      ignoreHTTPSErrors: true,
+      defaultViewport: {
+        width: 800,
+        height: 600
+      }
     });
     const page = await browser.newPage();
     await page.goto(`${baseUrl}/pdf/${dataId}`);
