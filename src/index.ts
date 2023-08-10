@@ -7,6 +7,9 @@ import cors from 'cors';
 import chromium from 'chromium';
 import puppeteer from 'puppeteer';
 import encodeQueryParams from './encodeQueryParams';
+import crypto from 'crypto';
+
+const dataStore: { [key: string]: { isLloyds: boolean; data: {}; createdAt: Date } } = {};
 
 type Body = {
   isLloyds: boolean;
@@ -23,6 +26,56 @@ app.get('/', (req, res) => {
   res.send('ok');
 });
 
+app.post('/api/init', async (req, res) => {
+  try {
+    const body = req.body as Body;
+
+    const { data, isLloyds } = body;
+
+    if (!data) {
+      res.status(400).send('Bad request');
+    }
+
+    const dataId = crypto.randomBytes(8).toString('hex');
+
+    dataStore[dataId] = { isLloyds, data, createdAt: new Date() };
+
+    console.log(dataStore);
+
+    res.status(200).json({ data: { dataId } });
+  } catch (error: any) {
+    res.status(500).send(error.message);
+  }
+});
+
+app.get('/api/generate/:dataId', async (req, res) => {
+  // launch virtual browser with param of dataId
+
+  // front app will pick up data from /api/pull/:dataId
+  // and render
+  // pdf snap and download
+
+  res.sendStatus(200);
+});
+
+app.get('/api/pull/:dataId', async (req, res) => {
+  const dataId = req.params.dataId;
+
+  if (!dataId) {
+    res.status(400).send('Bad request');
+    return;
+  }
+
+  const data = dataStore[dataId];
+
+  if (!data) {
+    res.status(500).send('Data not found');
+    return;
+  }
+
+  res.status(200).json({ data: data.data });
+});
+
 app.post('/api/generate', async (req, res) => {
   try {
     const body = req.body as Body;
@@ -33,15 +86,9 @@ app.post('/api/generate', async (req, res) => {
       res.status(400).send('Bad request');
     }
 
-    // console.log(data);
-
+    console.log(data);
     const stringifiedData = JSON.stringify(data);
     const queryData = encodeQueryParams({ data: stringifiedData });
-
-    // console.log(queryData);
-
-    // res.sendStatus(200);
-
     const baseUrl = isLloyds ? process.env.URL_LLOYDS : process.env.URL_BBOS;
 
     const browser = await puppeteer.launch({
@@ -52,7 +99,6 @@ app.post('/api/generate', async (req, res) => {
       ignoreHTTPSErrors: true
     });
     const page = await browser.newPage();
-
     await page.goto(`${baseUrl}/pdf${queryData}`);
 
     await new Promise((resolve) => {
@@ -63,14 +109,8 @@ app.post('/api/generate', async (req, res) => {
     });
 
     const buffer = await page.pdf({ format: 'a4', printBackground: true });
-
     await browser.close();
-
     res.status(200).json({ pdfBuffer: buffer });
-
-    // res.setHeader('Content-Type', 'application/octet-stream');
-    // res.setHeader('Content-Disposition', 'attachment; filename=generated.pdf');
-    // res.end(buffer);
   } catch (error: any) {
     console.log(error);
     res.status(500).send(error.message);
